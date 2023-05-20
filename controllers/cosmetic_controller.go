@@ -80,7 +80,6 @@ func GetAllCosmetics(c *fiber.Ctx) error {
 		cosmetic = append(cosmetic, singleCosmetic)
 	}
 
-	return c.Status(http.StatusOK).JSON(
-		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": cosmetic}},
-	)
+	return c.JSON(fiber.Map{"data": cosmetic})
+
 }
