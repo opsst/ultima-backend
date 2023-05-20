@@ -5,6 +5,7 @@ import (
 	"fiber-mongo-api/configs"
 	"fiber-mongo-api/models"
 	"fiber-mongo-api/responses"
+	"log"
 	"net/http"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var userCollection *mongo.Collection = configs.GetCollection(configs.DB, "users")
@@ -35,10 +37,22 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
 
+	err := userCollection.FindOne(ctx, bson.M{"username": user.Username}).Decode(&user)
+	if err == nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Username already taken."}})
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
+	if err != nil {
+		log.Println(err)
+	}
+
+	// println(string(hash))
+
 	newUser := models.User{
 		Id:       primitive.NewObjectID(),
 		Username: user.Username,
-		Password: user.Password,
+		Password: string(hash),
 	}
 
 	result, err := userCollection.InsertOne(ctx, newUser)
@@ -64,9 +78,16 @@ func Login(c *fiber.Ctx) error {
 	if validationErr := validate.Struct(&user); validationErr != nil {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
+	var plainpassword = user.Password
+	// , "password": user.Password
+	err := userCollection.FindOne(ctx, bson.M{"username": user.Username}).Decode(&user)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
 
-	err := userCollection.FindOne(ctx, bson.M{"username": user.Username, "password": user.Password}).Decode(&user)
-
+	// println(user.Password)
+	byteHash := []byte(user.Password)
+	err = bcrypt.CompareHashAndPassword(byteHash, []byte(plainpassword))
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
