@@ -29,7 +29,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	//validate the request body
 	if err := c.BodyParser(&user); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": "missing field"}})
 	}
 
 	//use the validator library to validate required fields
@@ -50,14 +50,16 @@ func CreateUser(c *fiber.Ctx) error {
 	// println(string(hash))
 
 	newUser := models.User{
-		Id:       primitive.NewObjectID(),
-		Username: user.Username,
-		Password: string(hash),
+		Id:        primitive.NewObjectID(),
+		Username:  user.Username,
+		Password:  string(hash),
+		Firstname: user.Firstname,
+		Lastname:  user.Lastname,
 	}
 
 	result, err := userCollection.InsertOne(ctx, newUser)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "invalid to Insert"}})
 	}
 
 	return c.Status(http.StatusCreated).JSON(responses.UserResponse{Status: http.StatusCreated, Message: "success", Data: &fiber.Map{"data": result}})
