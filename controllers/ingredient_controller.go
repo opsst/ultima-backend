@@ -61,28 +61,27 @@ func CreateIngredient(c *fiber.Ctx) error {
 func GetAllIngredients(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	// var users []models.User
-	// var cosmetics []models.Cosmetic
+	var ingredient []models.Ingredient
 	defer cancel()
 
 	results, err := ingredientCollection.Find(ctx, bson.M{})
-	print(results)
 
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
 
 	//reading from the db in an optimal way
-	// defer results.Close(ctx)
-	// for results.Next(ctx) {
-	// 	var singleCosmetic models.Cosmetic
-	// 	if err = results.Decode(&singleCosmetic); err != nil {
-	// 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
-	// 	}
+	defer results.Close(ctx)
+	for results.Next(ctx) {
+		var singleIngredient models.Ingredient
+		if err = results.Decode(&singleIngredient); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		}
 
-	// 	cosmetics = append(cosmetics, singleCosmetic)
-	// }
+		ingredient = append(ingredient, singleIngredient)
+	}
 
 	return c.Status(http.StatusOK).JSON(
-		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": results}},
+		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": ingredient}},
 	)
 }

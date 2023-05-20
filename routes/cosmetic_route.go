@@ -16,7 +16,4 @@ func CosmeticRoute(app *fiber.App) {
 	app.Use(jwtware.New(jwtware.Config{SigningKey: []byte("ultima")}))
 	app.Post("/cosmetic/create", controllers.CreateCosmetic)
 	app.Get("/cosmetic/checkall", controllers.GetAllCosmetics)
-	app.Get("/cosmetic/:cosmeticId", controllers.GetACosmetic)
-	app.Put("/cosmetic/:cosmeticId", controllers.EditACosmetic)
-	app.Delete("/cosmetic/:cosmeticId", controllers.DeleteACosmetic)
 }

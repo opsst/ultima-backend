@@ -5,11 +5,16 @@ import (
 )
 
 type Cosmetic struct {
-	Id      primitive.ObjectID   `json:"id,omitempty"`
-	P_name  string               `json:"p_name,omitempty" validate:"required"`
-	P_brand string               `json:"p_brand,omitempty" validate:"required"`
-	P_desc  string               `json:"p_desc,omitempty"`
-	P_cate  string               `json:"p_cate,omitempty"`
-	P_img   string               `json:"p_img,omitempty"`
-	Ing_id  []primitive.ObjectID `json:"ing_id,omitempty"`
+	Cos_brand       string               `json:"cos_brand,omitempty"`
+	Cos_name        string               `json:"cos_name,omitempty"`
+	Cos_desc        string               `json:"cos_desc,omitempty"`
+	Cos_cate        string               `json:"cos_cate,omitempty"`
+	Cos_form        string               `json:"cos_form,omitempty"`
+	Cos_img         string               `json:"cos_img,omitempty"`
+	Cos_claims      string               `json:"cos_claims,omitempty"`
+	Cos_istryon     bool                 `json:"cos_is-try-on,omitempty"`
+	Cos_color_img   []interface{}        `json:"cos_color-img,omitempty"`
+	Cos_tryon_name  []interface{}        `json:"cos_try-on-name,omitempty"`
+	Cos_tryon_color []interface{}        `json:"cos_try-on-color,omitempty"`
+	Ing_id          []primitive.ObjectID `json:"cos_ing_id,omitempty"`
 }

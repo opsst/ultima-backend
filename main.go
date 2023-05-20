@@ -16,5 +16,6 @@ func main() {
 	routes.UserRoute(app) //add this
 	routes.CosmeticRoute(app)
 	routes.IngredientRoute(app)
+	routes.SkincareRoute(app)
 	app.Listen(":8000")
 }
