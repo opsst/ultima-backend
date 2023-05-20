@@ -5,16 +5,22 @@ import (
 	"fiber-mongo-api/routes" //add this
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func main() {
 	app := fiber.New()
-
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "*",
+		AllowHeaders: "*",
+	}))
 	//run database
 	configs.ConnectDB()
 	//routes
-	routes.UserRoute(app) //add this
 	routes.CosmeticRoute(app)
+	routes.UserRoute(app) //add this
+
 	routes.IngredientRoute(app)
 	routes.SkincareRoute(app)
 	app.Listen(":8000")
