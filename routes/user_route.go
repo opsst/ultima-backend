@@ -14,9 +14,9 @@ func UserRoute(app *fiber.App) {
 		TimeZone: "Asia/Bangkok",
 	}))
 	app.Post("/user/login", controllers.Login)
+	app.Post("/user/create", controllers.CreateUser)
 
 	app.Use(jwtware.New(jwtware.Config{SigningKey: []byte("ultima")}))
-	app.Post("/user", controllers.CreateUser)
 
 	app.Get("/user/:userId", controllers.GetAUser)
 	app.Put("/user/:userId", controllers.EditAUser)
