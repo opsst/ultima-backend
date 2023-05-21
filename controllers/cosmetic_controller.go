@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -35,6 +36,7 @@ func CreateCosmetic(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Cosmetic Already have in database."}})
 	}
 	newCosmetic := models.Cosmetic{
+		Id:              primitive.NewObjectID(),
 		Cos_brand:       cosmetic.Cos_brand,
 		Cos_name:        cosmetic.Cos_name,
 		Cos_desc:        cosmetic.Cos_desc,
@@ -72,7 +74,7 @@ func GetAllCosmetics(c *fiber.Ctx) error {
 	for results.Next(ctx) {
 		var singleCosmetic models.Cosmetic
 		if err = results.Decode(&singleCosmetic); err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"Error on result: ": err.Error()}})
 		}
 
 		cosmetic = append(cosmetic, singleCosmetic)
@@ -80,4 +82,43 @@ func GetAllCosmetics(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"data": cosmetic})
 
+}
+
+func GetACosmetic(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	cosId := c.Params("cosId")
+	var cosmetic []models.Cosmetic
+	defer cancel()
+
+	objId, _ := primitive.ObjectIDFromHex(cosId)
+
+	err := cosmeticCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&cosmetic)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+
+	return c.JSON(fiber.Map{"data": cosmetic})
+}
+
+func DeleteACosmetic(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	cosId := c.Params("cosId")
+	defer cancel()
+
+	objId, _ := primitive.ObjectIDFromHex(cosId)
+
+	result, err := cosmeticCollection.DeleteOne(ctx, bson.M{"_id": objId})
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+
+	if result.DeletedCount < 1 {
+		return c.Status(http.StatusNotFound).JSON(
+			responses.UserResponse{Status: http.StatusNotFound, Message: "error", Data: &fiber.Map{"data": "User with specified ID not found!"}},
+		)
+	}
+
+	return c.Status(http.StatusOK).JSON(
+		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": "User successfully deleted!"}},
+	)
 }

@@ -5,6 +5,7 @@ import (
 )
 
 type Cosmetic struct {
+	Id              primitive.ObjectID   `bson:"_id"`
 	Cos_brand       string               `json:"cos_brand,omitempty"`
 	Cos_name        string               `json:"cos_name,omitempty"`
 	Cos_desc        string               `json:"cos_desc,omitempty"`
