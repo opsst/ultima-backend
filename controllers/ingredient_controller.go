@@ -5,15 +5,53 @@ import (
 	"fiber-mongo-api/configs"
 	"fiber-mongo-api/models"
 	"fiber-mongo-api/responses"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var ingredientCollection *mongo.Collection = configs.GetCollection2(configs.DB2, "cosmetic-ingredients")
+var ingredientCollection *mongo.Collection = configs.GetCollection2(configs.DB2, "ingredients")
+
+func FindIngredient(c *fiber.Ctx) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	var ingredient models.Ingredient
+	defer cancel()
+
+	//validate the request body
+	if err := c.BodyParser(&ingredient); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+	fmt.Println(ingredient.Name)
+
+	//use the validator library to validate required fields
+	if validationErr := validate.Struct(&ingredient); validationErr != nil {
+		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
+	}
+	query := bson.M{
+		"$or": bson.A{
+			bson.M{"calling": bson.M{
+				"$regex": primitive.Regex{Pattern: ingredient.Name, Options: "i"}}},
+			bson.M{"name": bson.M{
+				"$regex": primitive.Regex{Pattern: ingredient.Name, Options: "i"}}},
+		},
+	}
+
+	err := ingredientCollection.FindOne(ctx, query).Decode(&ingredient)
+	fmt.Println(ingredient.Calling)
+
+	if err != nil {
+		return c.Status(http.StatusNotFound).JSON(responses.UserResponse{Status: http.StatusNotFound, Message: "Not Found"})
+	}
+
+	return c.JSON(fiber.Map{"ing_id": ingredient.ID.Hex()})
+
+}
 
 func CreateIngredient(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -47,7 +85,6 @@ func CreateIngredient(c *fiber.Ctx) error {
 		Detail:  ingredient.Detail,
 		Proof:   ingredient.Proof,
 		Link:    ingredient.Link,
-		IsTryOn: ingredient.IsTryOn,
 	}
 
 	result, err := ingredientCollection.InsertOne(ctx, newIngredient)
