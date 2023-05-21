@@ -81,6 +81,33 @@ func GetAllCosmetics(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"data": cosmetic})
+	// return c.JSON(fiber.Map{"data": "hi"})
+}
+
+func GetAllTryonCosmetics(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// var users []models.User
+	var cosmetic []models.Cosmetic
+	defer cancel()
+
+	results, err := cosmeticCollection.Find(ctx, bson.M{"cos_istryon": true})
+
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+
+	//reading from the db in an optimal way
+	defer results.Close(ctx)
+	for results.Next(ctx) {
+		var singleCosmetic models.Cosmetic
+		if err = results.Decode(&singleCosmetic); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"Error on result: ": err.Error()}})
+		}
+
+		cosmetic = append(cosmetic, singleCosmetic)
+	}
+
+	return c.JSON(fiber.Map{"data": cosmetic})
 
 }
 
@@ -92,7 +119,7 @@ func GetACosmetic(c *fiber.Ctx) error {
 
 	objId, _ := primitive.ObjectIDFromHex(cosId)
 
-	err := cosmeticCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&cosmetic)
+	err := cosmeticCollection.FindOne(ctx, bson.M{"_id": objId}).Decode(&cosmetic)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
