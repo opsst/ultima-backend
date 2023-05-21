@@ -18,9 +18,10 @@ func main() {
 	//run database
 	configs.ConnectDB()
 	//routes
+
 	routes.CosmeticRoute(app)
 	routes.UserRoute(app) //add this
-
+	routes.FragranceRoute(app)
 	routes.IngredientRoute(app)
 	routes.SkincareRoute(app)
 	app.Listen(":8000")

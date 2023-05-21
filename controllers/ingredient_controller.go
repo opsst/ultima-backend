@@ -70,10 +70,11 @@ func CreateIngredient(c *fiber.Ctx) error {
 
 	err := ingredientCollection.FindOne(ctx, bson.M{"name": ingredient.Name}).Decode(&ingredient)
 	if err == nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Ingredient Already have."}})
+		return c.JSON(fiber.Map{"ing_id": ingredient.ID})
 	}
 
 	newIngredient := models.Ingredient{
+		ID:      primitive.NewObjectID(),
 		Name:    ingredient.Name,
 		Rate:    ingredient.Rate,
 		Calling: ingredient.Calling,

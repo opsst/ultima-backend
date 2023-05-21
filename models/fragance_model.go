@@ -4,7 +4,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Skincare struct {
+type Fragrance struct {
 	ID      primitive.ObjectID   `bson:"_id"`
 	P_name  string               `json:"p_name,omitempty"`
 	P_brand string               `json:"p_brand,omitempty"`

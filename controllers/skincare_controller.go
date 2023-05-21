@@ -81,20 +81,48 @@ func GetAllSkincares(c *fiber.Ctx) error {
 }
 
 // GET
+// func GetASkincare(c *fiber.Ctx) error {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	skincareId := c.Params("skincareId")
+// 	var skincare models.Skincare
+// 	defer cancel()
+
+// 	objId, _ := primitive.ObjectIDFromHex(skincareId)
+
+// 	err := skincareCollection.FindOne(ctx, bson.M{"_id": objId}).Decode(&skincare)
+// 	if err != nil {
+// 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+// 	}
+
+// 	return c.Status(http.StatusOK).JSON(responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": skincare}})
+// }
+
 func GetASkincare(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// var users []models.User
 	skincareId := c.Params("skincareId")
-	var skincare models.Skincare
+	var skincare []models.Skincare
 	defer cancel()
-
 	objId, _ := primitive.ObjectIDFromHex(skincareId)
+	results, err := skincareCollection.Find(ctx, bson.M{"_id": objId})
 
-	err := skincareCollection.FindOne(ctx, bson.M{"_id": objId}).Decode(&skincare)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
 
-	return c.Status(http.StatusOK).JSON(responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": skincare}})
+	//reading from the db in an optimal way
+	defer results.Close(ctx)
+	for results.Next(ctx) {
+		var singleSkincare models.Skincare
+		if err = results.Decode(&singleSkincare); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"Error on result: ": err.Error()}})
+		}
+
+		skincare = append(skincare, singleSkincare)
+	}
+
+	return c.JSON(fiber.Map{"data": skincare})
+
 }
 
 // PUT
