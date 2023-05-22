@@ -37,9 +37,9 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
 
-	err := userCollection.FindOne(ctx, bson.M{"username": user.Username}).Decode(&user)
+	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&user)
 	if err == nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Username already taken."}})
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Email already taken."}})
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
@@ -51,7 +51,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	newUser := models.User{
 		Id:        primitive.NewObjectID(),
-		Username:  user.Username,
+		Email:     user.Email,
 		Password:  string(hash),
 		Firstname: user.Firstname,
 		Lastname:  user.Lastname,
@@ -82,7 +82,7 @@ func Login(c *fiber.Ctx) error {
 	}
 	var plainpassword = user.Password
 	// , "password": user.Password
-	err := userCollection.FindOne(ctx, bson.M{"username": user.Username}).Decode(&user)
+	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&user)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
@@ -95,8 +95,8 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	claims := jwt.MapClaims{
-		"username": user.Username,
-		"admin":    false,
+		"email": user.Email,
+		"admin": false,
 		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Create token
@@ -106,7 +106,7 @@ func Login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	return c.JSON(fiber.Map{"token": t, "message": "success"})
+	return c.JSON(fiber.Map{"token": t})
 }
 
 func GetAUser(c *fiber.Ctx) error {
@@ -143,7 +143,7 @@ func EditAUser(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
 
-	update := bson.M{"username": user.Username, "password": user.Password}
+	update := bson.M{"email": user.Email, "password": user.Password}
 
 	result, err := userCollection.UpdateOne(ctx, bson.M{"id": objId}, bson.M{"$set": update})
 
