@@ -8,4 +8,5 @@ type User struct {
 	Password  string             `json:"password,omitempty" validate:"required"`
 	Firstname string             `json:"firstname,omitempty"`
 	Lastname  string             `json:"lastname,omitempty"`
+	Admin     string             `json:"admin,omitempty"`
 }

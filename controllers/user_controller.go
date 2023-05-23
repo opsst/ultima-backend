@@ -55,6 +55,7 @@ func CreateUser(c *fiber.Ctx) error {
 		Password:  string(hash),
 		Firstname: user.Firstname,
 		Lastname:  user.Lastname,
+		Admin:     "NA",
 	}
 
 	result, err := userCollection.InsertOne(ctx, newUser)
@@ -96,7 +97,7 @@ func Login(c *fiber.Ctx) error {
 
 	claims := jwt.MapClaims{
 		"email": user.Email,
-		"admin": false,
+		"admin": user.Admin,
 		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Create token
@@ -106,7 +107,7 @@ func Login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	return c.JSON(fiber.Map{"token": t})
+	return c.JSON(fiber.Map{"token": t, "message": "success"})
 }
 
 func GetAUser(c *fiber.Ctx) error {
