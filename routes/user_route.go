@@ -17,9 +17,10 @@ func UserRoute(app *fiber.App) {
 	app.Post("/user/create", controllers.CreateUser)
 
 	app.Use(jwtware.New(jwtware.Config{SigningKey: []byte("ultima")}))
-
+	app.Get("/user/ultima", controllers.GetAllUltimaUser)
 	app.Get("/user/:userId", controllers.GetAUser)
 	app.Put("/user/:userId", controllers.EditAUser)
+	app.Put("/user/point/:userId", controllers.AddUserPoint)
 	app.Delete("/user/:userId", controllers.DeleteAUser)
 	app.Get("/users", controllers.GetAllUsers)
 }
