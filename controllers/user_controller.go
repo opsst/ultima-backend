@@ -5,8 +5,10 @@ import (
 	"fiber-mongo-api/configs"
 	"fiber-mongo-api/models"
 	"fiber-mongo-api/responses"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -37,6 +39,11 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
 
+	if !strings.Contains(user.Email, "@") {
+		fmt.Println(user.Email)
+		return c.JSON(fiber.Map{"message": "Wrong email format."})
+	}
+
 	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&user)
 	if err == nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Email already taken."}})
@@ -46,8 +53,6 @@ func CreateUser(c *fiber.Ctx) error {
 	if err != nil {
 		log.Println(err)
 	}
-
-	// println(string(hash))
 
 	newUser := models.User{
 		Id:        primitive.NewObjectID(),
