@@ -16,6 +16,7 @@ func FragranceRoute(app *fiber.App) {
 	app.Use(jwtware.New(jwtware.Config{SigningKey: []byte("ultima")}))
 	app.Post("/fragrance/create", controllers.CreateFragrance)
 	app.Get("/fragrance/checkall", controllers.GetAllFragrances)
+	app.Get("/fragrance/ingredient/:fragranceId", controllers.GetAFragran_ing)
 	// app.Get("/fragrance/getfragrance", controllers.GetAllFragances)
 	app.Get("/fragrance/:fragranceId", controllers.GetAFragrance)
 	app.Put("/fragrance/:fragranceId", controllers.EditASkincare)

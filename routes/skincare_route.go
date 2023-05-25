@@ -17,6 +17,7 @@ func SkincareRoute(app *fiber.App) {
 	app.Post("/skincare/create", controllers.CreateSkincare)
 	app.Get("/skincare/checkall", controllers.GetAllSkincares)
 	// app.Get("/skincare/getfragrance", controllers.GetAllFragances)
+	app.Get("/skincare/ingredient/:skincareId", controllers.GetASkincare_ing)
 	app.Get("/skincare/:skincareId", controllers.GetASkincare)
 	app.Put("/skincare/:skincareId", controllers.EditASkincare)
 	app.Delete("/skincare/:skincareId", controllers.DeleteASkincare)

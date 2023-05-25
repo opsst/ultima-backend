@@ -5,6 +5,7 @@ import (
 	"fiber-mongo-api/configs"
 	"fiber-mongo-api/models"
 	"fiber-mongo-api/responses"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -148,4 +149,62 @@ func DeleteAFragrance(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(
 		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": "User successfully deleted!"}},
 	)
+}
+
+func GetAFragran_ing(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	// var users []models.User
+	fragranceId := c.Params("fragranceId")
+	// var cosmetic []models.Cosmetic
+
+	var myarray []interface{}
+	defer cancel()
+	objId, _ := primitive.ObjectIDFromHex(fragranceId)
+	results, err := fragranceCollection.Find(ctx, bson.M{"_id": objId})
+
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+
+	//reading from the db in an optimal way
+	defer results.Close(ctx)
+	for results.Next(ctx) {
+		var singleFragrance models.Fragrance
+
+		// var ingredient []models.Ingredient
+		if err = results.Decode(&singleFragrance); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"Error on result: ": err.Error()}})
+		}
+
+		for i := 0; i < len(singleFragrance.Ing_id); i++ {
+			var ingredient []models.Ingredient
+			fmt.Println(singleFragrance.Ing_id[i])
+			// fmt.Println(singleFragrance.Cos_name)
+
+			defer cancel()
+
+			results, err := ingredientCollection.Find(ctx, bson.M{"_id": singleFragrance.Ing_id[i]})
+
+			if err != nil {
+				return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+			}
+
+			//reading from the db in an optimal way
+			defer results.Close(ctx)
+			for results.Next(ctx) {
+				var singleIngredient models.Ingredient
+				if err = results.Decode(&singleIngredient); err != nil {
+					return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+				}
+				// fmt.Println("Before Result!")
+				ingredient = append(ingredient, singleIngredient)
+
+			}
+			myarray = append(myarray, ingredient)
+		}
+		// cosmetic = append(cosmetic, singleCosmetic)
+	}
+	// fmt.Println(ingredient)
+	return c.JSON(fiber.Map{"data": myarray})
+
 }
