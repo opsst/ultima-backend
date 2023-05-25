@@ -15,7 +15,6 @@ func IngredientRoute(app *fiber.App) {
 	}))
 
 	app.Post("/ingredient/find", controllers.FindIngredient)
-
 	app.Use(jwtware.New(jwtware.Config{SigningKey: []byte("ultima")}))
 	app.Post("/ingredient/create", controllers.CreateIngredient)
 	app.Get("/ingredient/checkall", controllers.GetAllIngredients)

@@ -87,6 +87,7 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
 	var plainpassword = user.Password
+	var firebase_token = user.Firebasetoken
 	// , "password": user.Password
 	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&user)
 	if err != nil {
@@ -96,6 +97,14 @@ func Login(c *fiber.Ctx) error {
 	// println(user.Password)
 	byteHash := []byte(user.Password)
 	err = bcrypt.CompareHashAndPassword(byteHash, []byte(plainpassword))
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+	// fmt.Println("kuy")
+	// fmt.Println(firebase_token)
+	update := bson.M{"firebasetoken": firebase_token}
+
+	result, err := userCollection.UpdateOne(ctx, bson.M{"email": user.Email}, bson.M{"$set": update})
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
@@ -112,7 +121,7 @@ func Login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	return c.JSON(fiber.Map{"token": t, "message": "success"})
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
 }
 
 func GetAUser(c *fiber.Ctx) error {
