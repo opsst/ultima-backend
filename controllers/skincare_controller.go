@@ -36,6 +36,7 @@ func CreateSkincare(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Skincare Already have."}})
 	}
 	newSkincare := models.Skincare{
+		ID:      primitive.NewObjectID(),
 		P_name:  skincare.P_name,
 		P_brand: skincare.P_brand,
 		P_desc:  skincare.P_desc,
