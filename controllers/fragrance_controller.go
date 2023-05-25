@@ -77,9 +77,7 @@ func GetAllFragrances(c *fiber.Ctx) error {
 		fragrance = append(fragrance, singleFragrance)
 	}
 
-	return c.Status(http.StatusOK).JSON(
-		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": fragrance}},
-	)
+	return c.JSON(fiber.Map{"data": fragrance})
 }
 
 // GET

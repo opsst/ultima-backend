@@ -76,9 +76,7 @@ func GetAllSkincares(c *fiber.Ctx) error {
 		skincare = append(skincare, singleSkincare)
 	}
 
-	return c.Status(http.StatusOK).JSON(
-		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": skincare}},
-	)
+	return c.JSON(fiber.Map{"data": skincare})
 }
 
 // GET
