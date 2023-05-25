@@ -32,7 +32,7 @@ func CreateFragrance(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
 
-	err := ingredientCollection.FindOne(ctx, bson.M{"name": fragrance.P_name}).Decode(&fragrance)
+	err := fragranceCollection.FindOne(ctx, bson.M{"p_name": fragrance.P_name}).Decode(&fragrance)
 	if err == nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Fragrance Already have."}})
 	}

@@ -31,7 +31,7 @@ func CreateSkincare(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
 
-	err := ingredientCollection.FindOne(ctx, bson.M{"name": skincare.P_name}).Decode(&skincare)
+	err := skincareCollection.FindOne(ctx, bson.M{"p_name": skincare.P_name}).Decode(&skincare)
 	if err == nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Skincare Already have."}})
 	}
