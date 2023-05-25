@@ -123,3 +123,35 @@ func GetAllIngredients(c *fiber.Ctx) error {
 		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": ingredient}},
 	)
 }
+
+func GetAIngredient(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	// var users []models.User
+	ingredientId := c.Params("ingredientId")
+	var ingredient []models.Ingredient
+
+	// var myarray []interface{}
+	defer cancel()
+	objId, _ := primitive.ObjectIDFromHex(ingredientId)
+	results, err := ingredientCollection.Find(ctx, bson.M{"_id": objId})
+
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+
+	//reading from the db in an optimal way
+	defer results.Close(ctx)
+	for results.Next(ctx) {
+		var singleIngredient models.Ingredient
+
+		// var ingredient []models.Ingredient
+		if err = results.Decode(&singleIngredient); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"Error on result: ": err.Error()}})
+		}
+
+		ingredient = append(ingredient, singleIngredient)
+	}
+	// fmt.Println(ingredient)
+	return c.JSON(fiber.Map{"data": ingredient})
+
+}

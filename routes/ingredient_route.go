@@ -18,4 +18,5 @@ func IngredientRoute(app *fiber.App) {
 	app.Use(jwtware.New(jwtware.Config{SigningKey: []byte("ultima")}))
 	app.Post("/ingredient/create", controllers.CreateIngredient)
 	app.Get("/ingredient/checkall", controllers.GetAllIngredients)
+	app.Get("/ingredient/:ingredientId", controllers.GetAIngredient)
 }
