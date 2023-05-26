@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	firebase "firebase.google.com/go"
+	"firebase.google.com/go/messaging"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
@@ -294,4 +296,38 @@ func AddUserPoint(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": updatedUser}})
+}
+
+func PushNotification(c *fiber.Ctx) error {
+	apps, _, _ := configs.SetupFirebase()
+	// fmt.Println(apps)
+	var title = "title"
+	var body = "body"
+	sendToToken(apps, title, body)
+	return c.JSON(fiber.Map{"message": "yey"})
+
+}
+
+func sendToToken(apps *firebase.App, title string, body string) {
+	ctx := context.Background()
+	client, err := apps.Messaging(ctx)
+	if err != nil {
+		log.Fatalf("error getting Messaging client: %v", err)
+	}
+
+	registrationToken := "fU_KNvolTA2FCgjO7L15K6:APA91bGCkY5iyiNj4cE0S3nh05PKyXwombEJ__PcuJh-bOSLSWgz_XNrt50g6u4-cMEXnVw90y6svez-9DxNW8gopj0sfecSCQvcNo4cBqCWfGB6HKYpewcA4_zXlo6x4zP-MJdoIiHo"
+
+	message := &messaging.Message{
+		Notification: &messaging.Notification{
+			Title: title,
+			Body:  body,
+		},
+		Token: registrationToken,
+	}
+
+	response, err := client.Send(ctx, message)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println("Successfully sent message:", response)
 }

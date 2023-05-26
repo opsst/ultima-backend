@@ -9,12 +9,16 @@ import (
 )
 
 func main() {
+
+	// sendToToken(apps)
+
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowMethods: "*",
 		AllowHeaders: "*",
 	}))
+
 	//run database
 	configs.ConnectDB()
 	//routes
