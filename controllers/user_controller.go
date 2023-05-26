@@ -112,8 +112,10 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	claims := jwt.MapClaims{
-		"email": user.Email,
-		"admin": user.Admin,
+		"email":  user.Email,
+		"admin":  user.Admin,
+		"f_name": user.Firstname,
+		"l_name": user.Lastname,
 		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Create token
@@ -301,8 +303,19 @@ func AddUserPoint(c *fiber.Ctx) error {
 func PushNotification(c *fiber.Ctx) error {
 	apps, _, _ := configs.SetupFirebase()
 	// fmt.Println(apps)
-	var title = "title"
-	var body = "body"
+
+	type Notification struct {
+		Title string
+		Body  string
+	}
+	var noti Notification
+
+	if err := c.BodyParser(&noti); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+	var title = noti.Title
+	var body = noti.Body
+	// fmt.Println(title + " : " + body)
 	sendToToken(apps, title, body)
 	return c.JSON(fiber.Map{"message": "yey"})
 
