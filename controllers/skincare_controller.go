@@ -42,6 +42,7 @@ func CreateSkincare(c *fiber.Ctx) error {
 		P_desc:  skincare.P_desc,
 		P_cate:  skincare.P_cate,
 		P_img:   skincare.P_img,
+		L_link:  skincare.L_link,
 		Ing_id:  skincare.Ing_id,
 	}
 

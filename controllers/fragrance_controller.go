@@ -43,6 +43,7 @@ func CreateFragrance(c *fiber.Ctx) error {
 		P_desc:  fragrance.P_desc,
 		P_cate:  fragrance.P_cate,
 		P_img:   fragrance.P_img,
+		L_link:  fragrance.L_link,
 		Ing_id:  fragrance.Ing_id,
 	}
 

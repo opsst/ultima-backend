@@ -47,6 +47,7 @@ func CreateCosmetic(c *fiber.Ctx) error {
 		Cos_color_img:   cosmetic.Cos_color_img,
 		Cos_tryon_name:  cosmetic.Cos_tryon_name,
 		Cos_tryon_color: cosmetic.Cos_tryon_color,
+		L_link:          cosmetic.L_link,
 		Ing_id:          cosmetic.Ing_id,
 	}
 

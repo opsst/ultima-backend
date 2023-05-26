@@ -15,5 +15,6 @@ type Cosmetic struct {
 	Cos_color_img   []interface{}        `json:"cos_color_img,omitempty"`
 	Cos_tryon_name  []interface{}        `json:"cos_tryon_name,omitempty"`
 	Cos_tryon_color []interface{}        `json:"cos_tryon_color,omitempty"`
+	L_link          []interface{}        `json:"l_link,omitempty"`
 	Ing_id          []primitive.ObjectID `json:"ing_id,omitempty"`
 }
