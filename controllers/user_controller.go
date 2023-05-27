@@ -33,7 +33,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	//validate the request body
 	if err := c.BodyParser(&user); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": "missing field"}})
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid body."})
 	}
 
 	//use the validator library to validate required fields
@@ -43,12 +43,12 @@ func CreateUser(c *fiber.Ctx) error {
 
 	if !strings.Contains(user.Email, "@") {
 		fmt.Println(user.Email)
-		return c.JSON(fiber.Map{"message": "Wrong email format."})
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Wrong email format."})
 	}
 
 	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&user)
 	if err == nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "This Email already taken."}})
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "This email already taken."})
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
@@ -67,10 +67,10 @@ func CreateUser(c *fiber.Ctx) error {
 
 	result, err := userCollection.InsertOne(ctx, newUser)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "invalid to Insert"}})
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid data."})
 	}
 
-	return c.Status(http.StatusCreated).JSON(responses.UserResponse{Status: http.StatusCreated, Message: "success", Data: &fiber.Map{"data": result}})
+	return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Success", "result": result})
 }
 
 func Login(c *fiber.Ctx) error {
@@ -81,7 +81,7 @@ func Login(c *fiber.Ctx) error {
 
 	//validate the request body
 	if err := c.BodyParser(&user); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid body."})
 	}
 
 	//use the validator library to validate required fields
@@ -93,14 +93,14 @@ func Login(c *fiber.Ctx) error {
 	// , "password": user.Password
 	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&user)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Could not find your email."})
 	}
 
 	// println(user.Password)
 	byteHash := []byte(user.Password)
 	err = bcrypt.CompareHashAndPassword(byteHash, []byte(plainpassword))
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Your password is wrong."})
 	}
 	// fmt.Println("kuy")
 	// fmt.Println(firebase_token)
@@ -108,7 +108,7 @@ func Login(c *fiber.Ctx) error {
 
 	result, err := userCollection.UpdateOne(ctx, bson.M{"email": user.Email}, bson.M{"$set": update})
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Can not update firebase token."})
 	}
 
 	claims := jwt.MapClaims{

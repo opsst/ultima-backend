@@ -28,5 +28,6 @@ func main() {
 	routes.FragranceRoute(app)
 	routes.IngredientRoute(app)
 	routes.SkincareRoute(app)
+	routes.RewardRoute(app)
 	app.Listen(":8000")
 }
