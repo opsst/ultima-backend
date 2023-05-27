@@ -36,6 +36,14 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid body."})
 	}
 
+	if user.Email == "" {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Email could not be empty."})
+	}
+
+	if user.Password == "" {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Password could not be empty."})
+	}
+
 	//use the validator library to validate required fields
 	if validationErr := validate.Struct(&user); validationErr != nil {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
@@ -84,6 +92,21 @@ func Login(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid body."})
 	}
 
+	if !strings.Contains(user.Email, "@") {
+		fmt.Println(user.Email)
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Wrong email format."})
+	}
+
+	if user.Email == "" {
+		// fmt.Println(user.Email)
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Email could not be empty."})
+	}
+
+	if user.Password == "" {
+		// fmt.Println(user.Email)
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Password could not be empty."})
+	}
+
 	//use the validator library to validate required fields
 	if validationErr := validate.Struct(&user); validationErr != nil {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
@@ -116,6 +139,188 @@ func Login(c *fiber.Ctx) error {
 		"admin":  user.Admin,
 		"f_name": user.Firstname,
 		"l_name": user.Lastname,
+		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
+	}
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("ultima"))
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
+}
+
+func Fb_Create(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	var user models.User
+	defer cancel()
+
+	//validate the request body
+	if err := c.BodyParser(&user); err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid body."})
+	}
+
+	if user.Fb_login == "" {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Someting might wrong."})
+	}
+
+	err := userCollection.FindOne(ctx, bson.M{"fb_login": user.Fb_login}).Decode(&user)
+	if err == nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "This uid already used."})
+	}
+	newUser := models.User{
+		Id:        primitive.NewObjectID(),
+		Fb_login:  user.Fb_login,
+		Firstname: user.Firstname,
+		Lastname:  user.Lastname,
+		Admin:     "NA",
+	}
+
+	result, err := userCollection.InsertOne(ctx, newUser)
+	if err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid data."})
+	}
+
+	claims := jwt.MapClaims{
+		"fb_login": "mockup token",
+		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
+	}
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("ultima"))
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
+}
+
+func Fb_Login(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	var user models.User
+	defer cancel()
+
+	//validate the request body
+	if err := c.BodyParser(&user); err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid body."})
+	}
+
+	if user.Fb_login == "" {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Someting might wrong."})
+	}
+
+	var firebase_token = user.Firebasetoken
+	// , "password": user.Password
+	err := userCollection.FindOne(ctx, bson.M{"fb_login": user.Fb_login}).Decode(&user)
+	if err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Could not find your uid."})
+	}
+
+	// fmt.Println("kuy")
+	// fmt.Println(firebase_token)
+	update := bson.M{"firebasetoken": firebase_token}
+
+	result, err := userCollection.UpdateOne(ctx, bson.M{"fb_login": user.Fb_login}, bson.M{"$set": update})
+	if err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Can not update firebase token."})
+	}
+
+	claims := jwt.MapClaims{
+		"fb_login": "mockup token",
+		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
+	}
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("ultima"))
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
+}
+
+func Google_Create(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	var user models.User
+	defer cancel()
+
+	//validate the request body
+	if err := c.BodyParser(&user); err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid body."})
+	}
+
+	if user.Google_login == "" {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Someting might wrong with your facebook account."})
+	}
+
+	err := userCollection.FindOne(ctx, bson.M{"google_login": user.Google_login}).Decode(&user)
+	if err == nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "This uid already used."})
+	}
+	newUser := models.User{
+		Id:           primitive.NewObjectID(),
+		Google_login: user.Google_login,
+		Firstname:    user.Firstname,
+		Lastname:     user.Lastname,
+		Admin:        "NA",
+	}
+
+	result, err := userCollection.InsertOne(ctx, newUser)
+	if err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid data."})
+	}
+
+	claims := jwt.MapClaims{
+		"fb_login": "mockup token",
+		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
+	}
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("ultima"))
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
+}
+
+func Google_Login(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	var user models.User
+	defer cancel()
+
+	//validate the request body
+	if err := c.BodyParser(&user); err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid body."})
+	}
+
+	if user.Google_login == "" {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Someting might wrong with your gmail."})
+	}
+
+	var firebase_token = user.Firebasetoken
+	// , "password": user.Password
+	err := userCollection.FindOne(ctx, bson.M{"google_login": user.Google_login}).Decode(&user)
+	if err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Could not find your uid."})
+	}
+
+	// fmt.Println("kuy")
+	// fmt.Println(firebase_token)
+	update := bson.M{"firebasetoken": firebase_token}
+
+	result, err := userCollection.UpdateOne(ctx, bson.M{"google_login": user.Google_login}, bson.M{"$set": update})
+	if err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Can not update firebase token."})
+	}
+
+	claims := jwt.MapClaims{
+		"fb_login": "mockup token",
 		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Create token
