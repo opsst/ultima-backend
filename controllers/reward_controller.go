@@ -128,3 +128,31 @@ func DeleteAReward(c *fiber.Ctx) error {
 		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": "User successfully deleted!"}},
 	)
 }
+
+func GetAReward(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// var users []models.User
+	rewardId := c.Params("rewardId")
+	var reward []models.Reward
+	defer cancel()
+	objId, _ := primitive.ObjectIDFromHex(rewardId)
+	results, err := rewardCollection.Find(ctx, bson.M{"_id": objId})
+
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+
+	//reading from the db in an optimal way
+	defer results.Close(ctx)
+	for results.Next(ctx) {
+		var singleReward models.Reward
+		if err = results.Decode(&singleReward); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"Error on result: ": err.Error()}})
+		}
+
+		reward = append(reward, singleReward)
+	}
+
+	return c.JSON(fiber.Map{"data": reward})
+
+}
