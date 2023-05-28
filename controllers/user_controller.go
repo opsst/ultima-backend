@@ -192,6 +192,7 @@ func Fb_Create(c *fiber.Ctx) error {
 	err := userCollection.FindOne(ctx, bson.M{"fb_login": user.Fb_login}).Decode(&user)
 	if err == nil {
 		claims := jwt.MapClaims{
+			"id":       user.Id,
 			"fb_login": user.Fb_login,
 			// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 		}
@@ -298,6 +299,7 @@ func Google_Create(c *fiber.Ctx) error {
 	err := userCollection.FindOne(ctx, bson.M{"google_login": user.Google_login}).Decode(&user)
 	if err == nil {
 		claims := jwt.MapClaims{
+			"id":           user.Id,
 			"google_login": user.Google_login,
 			// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 		}
