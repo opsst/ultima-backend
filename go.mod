@@ -14,9 +14,11 @@ require (
 	firebase.google.com/go/v4 v4.11.0 // indirect
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.13.0 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gofiber/fiber/v2 v2.44.0 // indirect
 	github.com/gofiber/jwt/v3 v3.3.9 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
@@ -30,6 +32,12 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
+	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
+	github.com/lestrrat-go/httpcc v1.0.1 // indirect
+	github.com/lestrrat-go/httprc v1.0.4 // indirect
+	github.com/lestrrat-go/iter v1.0.2 // indirect
+	github.com/lestrrat-go/jwx/v2 v2.0.9 // indirect
+	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect

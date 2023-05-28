@@ -20,6 +20,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	jwt2 "github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 var userCollection *mongo.Collection = configs.GetCollection(configs.DB, "users")
@@ -81,6 +84,7 @@ func CreateUser(c *fiber.Ctx) error {
 	}
 
 	claims := jwt.MapClaims{
+		"id":     newUser.Id,
 		"email":  newUser.Email,
 		"admin":  newUser.Admin,
 		"f_name": newUser.Firstname,
@@ -151,6 +155,7 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	claims := jwt.MapClaims{
+		"id":     user.Id,
 		"email":  user.Email,
 		"admin":  user.Admin,
 		"f_name": user.Firstname,
@@ -187,7 +192,7 @@ func Fb_Create(c *fiber.Ctx) error {
 	err := userCollection.FindOne(ctx, bson.M{"fb_login": user.Fb_login}).Decode(&user)
 	if err == nil {
 		claims := jwt.MapClaims{
-			"fb_login": "mockup token",
+			"fb_login": user.Fb_login,
 			// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -215,7 +220,8 @@ func Fb_Create(c *fiber.Ctx) error {
 	}
 
 	claims := jwt.MapClaims{
-		"fb_login": "mockup token",
+		"id":       newUser.Id,
+		"fb_login": user.Fb_login,
 		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Create token
@@ -260,7 +266,8 @@ func Fb_Login(c *fiber.Ctx) error {
 	}
 
 	claims := jwt.MapClaims{
-		"fb_login": "mockup token",
+		"id":       user.Id,
+		"fb_login": user.Fb_login,
 		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Create token
@@ -291,7 +298,7 @@ func Google_Create(c *fiber.Ctx) error {
 	err := userCollection.FindOne(ctx, bson.M{"google_login": user.Google_login}).Decode(&user)
 	if err == nil {
 		claims := jwt.MapClaims{
-			"google_login": "mockup token",
+			"google_login": user.Google_login,
 			// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -319,7 +326,8 @@ func Google_Create(c *fiber.Ctx) error {
 	}
 
 	claims := jwt.MapClaims{
-		"google_login": "mockup token",
+		"id":           newUser.Id,
+		"google_login": user.Google_login,
 		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Create token
@@ -364,7 +372,8 @@ func Google_Login(c *fiber.Ctx) error {
 	}
 
 	claims := jwt.MapClaims{
-		"fb_login": "mockup token",
+		"id":       user.Id,
+		"fb_login": user.Fb_login,
 		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Create token
@@ -377,11 +386,21 @@ func Google_Login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result, "status": http.StatusOK})
 }
 
+func GetATokenDetail(c *fiber.Ctx) error {
+	myUserId := strings.Split(c.Get("Authorization"), " ")
+	var token []string
+
+	tok, err := jwt2.Parse([]byte(myUserId[1]), jwt2.WithKey(jwa.HS256, []byte("ultima")))
+	if err != nil {
+		fmt.Println(token[1])
+	}
+	return c.JSON(fiber.Map{"data": tok})
+}
 func GetAUser(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	userId := c.Params("userId")
 	var user models.User
 	defer cancel()
+	userId := c.Params("userId")
 	var fb = false
 	var google = false
 	objId, _ := primitive.ObjectIDFromHex(userId)

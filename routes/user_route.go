@@ -22,6 +22,7 @@ func UserRoute(app *fiber.App) {
 	app.Use(jwtware.New(jwtware.Config{SigningKey: []byte("ultima")}))
 	app.Get("/user/ultima", controllers.GetAllUltimaUser)
 	app.Get("/user/:userId", controllers.GetAUser)
+	app.Get("/user/jwt/getTokenDetail", controllers.GetATokenDetail)
 	app.Put("/user/:userId", controllers.EditAUser)
 	app.Put("/user/point/:userId", controllers.AddUserPoint)
 	app.Delete("/user/:userId", controllers.DeleteAUser)
