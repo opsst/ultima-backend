@@ -164,7 +164,9 @@ func Login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
+	// fmt.Println(result, t)
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result, "status": "200"})
+	// return fiber.ErrServiceUnavailable
 }
 
 func Fb_Create(c *fiber.Ctx) error {
@@ -212,7 +214,7 @@ func Fb_Create(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result, "status": "200"})
 }
 
 func Fb_Login(c *fiber.Ctx) error {
@@ -257,7 +259,7 @@ func Fb_Login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result, "status": "200"})
 }
 
 func Google_Create(c *fiber.Ctx) error {
@@ -305,7 +307,7 @@ func Google_Create(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result, "status": "200"})
 }
 
 func Google_Login(c *fiber.Ctx) error {
@@ -350,7 +352,7 @@ func Google_Login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result})
+	return c.JSON(fiber.Map{"token": t, "message": "success", "result": result, "status": "200"})
 }
 
 func GetAUser(c *fiber.Ctx) error {
@@ -376,7 +378,7 @@ func GetAUser(c *fiber.Ctx) error {
 		google = true
 	}
 
-	return c.JSON(fiber.Map{"data": user, "fb": fb, "google": google})
+	return c.JSON(fiber.Map{"data": user, "fb": fb, "google": google, "status": "200"})
 }
 
 func EditAUser(c *fiber.Ctx) error {
@@ -463,9 +465,10 @@ func GetAllUsers(c *fiber.Ctx) error {
 		users = append(users, singleUser)
 	}
 
-	return c.Status(http.StatusOK).JSON(
-		responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": users}},
-	)
+	// return c.Status(http.StatusOK).JSON(
+	// 	responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": users ,"status": "200"}},
+	// )
+	return c.JSON(fiber.Map{"data": users, "status": "200"})
 }
 
 func GetAllUltimaUser(c *fiber.Ctx) error {
@@ -552,7 +555,7 @@ func PushNotification(c *fiber.Ctx) error {
 	var body = noti.Body
 	// fmt.Println(title + " : " + body)
 	sendToToken(apps, title, body)
-	return c.JSON(fiber.Map{"message": "yey"})
+	return c.JSON(fiber.Map{"message": "yey", "status": "200"})
 
 }
 
