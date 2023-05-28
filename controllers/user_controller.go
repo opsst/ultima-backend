@@ -186,7 +186,18 @@ func Fb_Create(c *fiber.Ctx) error {
 
 	err := userCollection.FindOne(ctx, bson.M{"fb_login": user.Fb_login}).Decode(&user)
 	if err == nil {
-		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "This uid already used."})
+		claims := jwt.MapClaims{
+			"fb_login": "mockup token",
+			// "exp":   time.Now().Add(time.Hour * 72).Unix(),
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		// Generate encoded token and send it as response.
+		t, err := token.SignedString([]byte("ultima"))
+		if err != nil {
+			return c.SendStatus(fiber.StatusInternalServerError)
+		}
+		return c.JSON(fiber.Map{"token": t, "message": "success with used signup uid", "status": http.StatusOK})
+
 	}
 	newUser := models.User{
 		Id:             primitive.NewObjectID(),
@@ -279,7 +290,18 @@ func Google_Create(c *fiber.Ctx) error {
 
 	err := userCollection.FindOne(ctx, bson.M{"google_login": user.Google_login}).Decode(&user)
 	if err == nil {
-		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "This uid already used."})
+		claims := jwt.MapClaims{
+			"google_login": "mockup token",
+			// "exp":   time.Now().Add(time.Hour * 72).Unix(),
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		// Generate encoded token and send it as response.
+		t, err := token.SignedString([]byte("ultima"))
+		if err != nil {
+			return c.SendStatus(fiber.StatusInternalServerError)
+		}
+		return c.JSON(fiber.Map{"token": t, "message": "success with used signup uid", "status": http.StatusOK})
+
 	}
 	newUser := models.User{
 		Id:             primitive.NewObjectID(),
@@ -297,7 +319,7 @@ func Google_Create(c *fiber.Ctx) error {
 	}
 
 	claims := jwt.MapClaims{
-		"fb_login": "mockup token",
+		"google_login": "mockup token",
 		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
 	}
 	// Create token
