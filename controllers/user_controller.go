@@ -594,6 +594,49 @@ func AddUserPoint(c *fiber.Ctx) error {
 	// return c.JSON(fiber.Map{"data": user, "status": http.StatusOK})
 }
 
+func DelUserPoint(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	userId := c.Params("userId")
+	// var users []models.User
+	var user models.User
+	defer cancel()
+	if err := c.BodyParser(&user); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+
+	var redeemPoint = user.Point
+
+	objId, _ := primitive.ObjectIDFromHex(userId)
+
+	err := userCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&user)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+	fmt.Println(user.Point)
+	fmt.Println(redeemPoint)
+	var totalPoint = user.Point - redeemPoint
+	// update := bson.M{"email": user.Email, "password": user.Password, "firstname": user.Firstname, "lastname": user.Lastname, "admin": user.Admin}
+	update := bson.M{"point": totalPoint}
+
+	result, err := userCollection.UpdateOne(ctx, bson.M{"id": objId}, bson.M{"$set": update})
+
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+	}
+	//get updated user details
+	var updatedUser models.User
+	if result.MatchedCount == 1 {
+		err := userCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&updatedUser)
+
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		}
+	}
+
+	return c.Status(http.StatusOK).JSON(responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": updatedUser}})
+	// return c.JSON(fiber.Map{"data": user, "status": http.StatusOK})
+}
+
 func PushNotification(c *fiber.Ctx) error {
 	apps, _, _ := configs.SetupFirebase()
 	// fmt.Println(apps)

@@ -24,8 +24,8 @@ func UserRoute(app *fiber.App) {
 	app.Get("/user/:userId", controllers.GetAUser)
 	app.Get("/user/jwt/getTokenDetail", controllers.GetATokenDetail)
 	app.Put("/user/:userId", controllers.EditAUser)
-	// app.Put("/user/point/:userId", controllers.AddUserPoint)
-	app.Put("/user/point/:userId", controllers.AddUserPoint)
+	app.Put("/user/delpoint/:userId", controllers.DelUserPoint)
+	app.Put("/user/addpoint/:userId", controllers.AddUserPoint)
 	app.Delete("/user/:userId", controllers.DeleteAUser)
 	app.Get("/users", controllers.GetAllUsers)
 
