@@ -78,7 +78,7 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid data."})
 	}
 
-	return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Success", "result": result})
+	return c.JSON(fiber.Map{"status": 201, "message": "Success", "result": result})
 }
 
 func Login(c *fiber.Ctx) error {
