@@ -565,15 +565,20 @@ func AddUserPoint(c *fiber.Ctx) error {
 		if err = results.Decode(&singleUser); err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"Error on result: ": err.Error()}})
 		}
+		// users = append(users, singleUser)
 		for i := 0; i < len(singleUser.Used_Point_URL); i++ {
 			if user.Used_Point_URL[0] == singleUser.Used_Point_URL[i] {
 				return c.JSON(fiber.Map{"message": "Used Link", "status": http.StatusInternalServerError})
 			}
+
 		}
+		user.Point = singleUser.Point + 1000
+		user.Used_Point_URL = append(singleUser.Used_Point_URL, user.Used_Point_URL...)
+		fmt.Println(user.Used_Point_URL...)
 		// fmt.Println(singleUser.Used_Point_URL)
-		// users = append(users, singleUser)
 	}
-	user.Point = 1000
+	// return c.JSON(fiber.Map{"message": users})
+
 	// update := bson.M{"email": user.Email, "password": user.Password, "firstname": user.Firstname, "lastname": user.Lastname, "admin": user.Admin}
 	update := bson.M{"point": user.Point, "used_point_url": user.Used_Point_URL}
 
