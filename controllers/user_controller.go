@@ -419,7 +419,7 @@ func GetAUser(c *fiber.Ctx) error {
 		google = true
 	}
 
-	return c.JSON(fiber.Map{"data": user, "fb": fb, "google": google, "status": http.StatusOK})
+	return c.JSON(fiber.Map{"data": user, "fb": fb, "google": google, "point": user.Point, "status": http.StatusOK})
 }
 
 func EditAUser(c *fiber.Ctx) error {
