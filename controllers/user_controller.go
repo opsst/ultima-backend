@@ -65,12 +65,14 @@ func CreateUser(c *fiber.Ctx) error {
 	}
 
 	newUser := models.User{
-		Id:        primitive.NewObjectID(),
-		Email:     user.Email,
-		Password:  string(hash),
-		Firstname: user.Firstname,
-		Lastname:  user.Lastname,
-		Admin:     "NA",
+		Id:             primitive.NewObjectID(),
+		Email:          user.Email,
+		Password:       string(hash),
+		Firstname:      user.Firstname,
+		Lastname:       user.Lastname,
+		Admin:          "NA",
+		Used_Point_URL: user.Used_Point_URL,
+		Point:          0,
 	}
 
 	result, err := userCollection.InsertOne(ctx, newUser)
@@ -78,7 +80,21 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Invalid data."})
 	}
 
-	return c.JSON(fiber.Map{"status": 200, "message": "Success", "result": result})
+	claims := jwt.MapClaims{
+		"email":  newUser.Email,
+		"admin":  newUser.Admin,
+		"f_name": newUser.Firstname,
+		"l_name": newUser.Lastname,
+		// "exp":   time.Now().Add(time.Hour * 72).Unix(),
+	}
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("ultima"))
+	if err != nil {
+		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "Fail to get token"})
+	}
+	return c.JSON(fiber.Map{"status": http.StatusOK, "message": "Success", "result": result, "token": t})
 }
 
 func Login(c *fiber.Ctx) error {
@@ -171,11 +187,13 @@ func Fb_Create(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "This uid already used."})
 	}
 	newUser := models.User{
-		Id:        primitive.NewObjectID(),
-		Fb_login:  user.Fb_login,
-		Firstname: user.Firstname,
-		Lastname:  user.Lastname,
-		Admin:     "NA",
+		Id:             primitive.NewObjectID(),
+		Fb_login:       user.Fb_login,
+		Firstname:      user.Firstname,
+		Lastname:       user.Lastname,
+		Admin:          "NA",
+		Used_Point_URL: user.Used_Point_URL,
+		Point:          0,
 	}
 
 	result, err := userCollection.InsertOne(ctx, newUser)
@@ -262,11 +280,13 @@ func Google_Create(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": http.StatusInternalServerError, "message": "This uid already used."})
 	}
 	newUser := models.User{
-		Id:           primitive.NewObjectID(),
-		Google_login: user.Google_login,
-		Firstname:    user.Firstname,
-		Lastname:     user.Lastname,
-		Admin:        "NA",
+		Id:             primitive.NewObjectID(),
+		Google_login:   user.Google_login,
+		Firstname:      user.Firstname,
+		Lastname:       user.Lastname,
+		Admin:          "NA",
+		Used_Point_URL: user.Used_Point_URL,
+		Point:          0,
 	}
 
 	result, err := userCollection.InsertOne(ctx, newUser)
@@ -338,15 +358,25 @@ func GetAUser(c *fiber.Ctx) error {
 	userId := c.Params("userId")
 	var user models.User
 	defer cancel()
-
+	var fb = false
+	var google = false
 	objId, _ := primitive.ObjectIDFromHex(userId)
 
 	err := userCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&user)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
+	user.Password = ""
+	if user.Fb_login != "" {
+		user.Fb_login = ""
+		fb = true
+	}
+	if user.Google_login != "" {
+		user.Google_login = ""
+		google = true
+	}
 
-	return c.Status(http.StatusOK).JSON(responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": user}})
+	return c.JSON(fiber.Map{"data": user, "fb": fb, "google": google})
 }
 
 func EditAUser(c *fiber.Ctx) error {
@@ -479,13 +509,13 @@ func AddUserPoint(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
 
-	//use the validator library to validate required fields
-	if validationErr := validate.Struct(&user); validationErr != nil {
-		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
+	err := userCollection.FindOne(ctx, bson.M{"used_point_url": user.Used_Point_URL}).Decode(&user)
+	if err == nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "Used link."}})
 	}
-
+	user.Point = 10
 	// update := bson.M{"email": user.Email, "password": user.Password, "firstname": user.Firstname, "lastname": user.Lastname, "admin": user.Admin}
-	update := bson.M{"point": user.Point}
+	update := bson.M{"point": user.Point, "used_point_url": user.Used_Point_URL}
 
 	result, err := userCollection.UpdateOne(ctx, bson.M{"id": objId}, bson.M{"$set": update})
 
