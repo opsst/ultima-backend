@@ -198,7 +198,6 @@ func GetASkincare_ing(c *fiber.Ctx) error {
 	defer cancel()
 	objId, _ := primitive.ObjectIDFromHex(skincareId)
 	results, err := skincareCollection.Find(ctx, bson.M{"_id": objId})
-
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}

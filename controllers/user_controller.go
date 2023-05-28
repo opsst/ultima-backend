@@ -543,21 +543,35 @@ func GetAllUltimaUser(c *fiber.Ctx) error {
 func AddUserPoint(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	userId := c.Params("userId")
+	// var users []models.User
 	var user models.User
 	defer cancel()
-
-	objId, _ := primitive.ObjectIDFromHex(userId)
-
-	//validate the request body
+	// validate the request body
 	if err := c.BodyParser(&user); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
-
-	err := userCollection.FindOne(ctx, bson.M{"used_point_url": user.Used_Point_URL}).Decode(&user)
-	if err == nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": "Used link."}})
+	objId, _ := primitive.ObjectIDFromHex(userId)
+	results, err := userCollection.Find(ctx, bson.M{"id": objId})
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
-	user.Point = 10
+
+	//reading from the db in an optimal way
+	defer results.Close(ctx)
+	for results.Next(ctx) {
+		var singleUser models.User
+		if err = results.Decode(&singleUser); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"Error on result: ": err.Error()}})
+		}
+		for i := 0; i < len(singleUser.Used_Point_URL); i++ {
+			if user.Used_Point_URL[0] == singleUser.Used_Point_URL[i] {
+				return c.JSON(fiber.Map{"message": "Used Link", "status": http.StatusInternalServerError})
+			}
+		}
+		// fmt.Println(singleUser.Used_Point_URL)
+		// users = append(users, singleUser)
+	}
+	user.Point = 1000
 	// update := bson.M{"email": user.Email, "password": user.Password, "firstname": user.Firstname, "lastname": user.Lastname, "admin": user.Admin}
 	update := bson.M{"point": user.Point, "used_point_url": user.Used_Point_URL}
 
@@ -577,6 +591,7 @@ func AddUserPoint(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": updatedUser}})
+	// return c.JSON(fiber.Map{"data": user, "status": http.StatusOK})
 }
 
 func PushNotification(c *fiber.Ctx) error {
