@@ -14,9 +14,10 @@ func main() {
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "*",
-		AllowHeaders: "*",
+		AllowOrigins:     "*",
+		AllowMethods:     "*",
+		AllowHeaders:     "*",
+		AllowCredentials: true,
 	}))
 
 	//run database

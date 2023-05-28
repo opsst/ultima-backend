@@ -2,6 +2,7 @@ package configs
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
 	firebase "firebase.google.com/go"
@@ -29,5 +30,6 @@ func SetupFirebase() (*firebase.App, context.Context, *messaging.Client) {
 	//Messaging client
 	client, _ := apps.Messaging(ctx)
 
+	fmt.Println(client)
 	return apps, ctx, client
 }

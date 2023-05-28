@@ -659,7 +659,7 @@ func PushNotification(c *fiber.Ctx) error {
 	}
 	var title = noti.Title
 	var body = noti.Body
-	// fmt.Println(title + " : " + body)
+	fmt.Println(title + " : " + body)
 	sendToToken(apps, title, body)
 	return c.JSON(fiber.Map{"message": "yey", "status": http.StatusOK})
 
